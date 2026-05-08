@@ -29,6 +29,10 @@ import argparse
 import sys
 import json
 import hashlib
+<<<<<<< HEAD
+import threading
+=======
+>>>>>>> 7aa82b6a024539eabc686ecf584dd7bfe1858eb8
 from pathlib import Path
 
 # Add parent directory to path for imports
@@ -74,6 +78,24 @@ class BrokerNode:
         self.forwarded_messages = set()  # Set of recently forwarded message IDs
         
         self.msg_count = 0
+<<<<<<< HEAD
+        self.poller = None
+        
+        # Dynamic discovery
+        self._discovery_enabled = broker_discovery.is_dynamic_discovery_enabled()
+        self._registry_client = None
+        self._udp_discovery = None
+        self._heartbeat_thread = None
+        self._last_heartbeat = 0
+        
+        print(f"[BROKER-{self.broker_id}] Initializing broker node...")
+        print(f"[BROKER-{self.broker_id}] Cluster mode: {self.is_cluster}")
+        print(f"[BROKER-{self.broker_id}] Dynamic discovery: {self._discovery_enabled}")
+        print(f"[BROKER-{self.broker_id}] Total brokers: {self.num_brokers}")
+        
+        self._setup_sockets()
+        self._setup_dynamic_discovery()
+=======
         self.relay_print_count = 0
         self.poller = None
         
@@ -82,6 +104,7 @@ class BrokerNode:
         print(f"[BROKER-{self.broker_id}] Total brokers: {self.num_brokers}")
         
         self._setup_sockets()
+>>>>>>> 7aa82b6a024539eabc686ecf584dd7bfe1858eb8
     
     def _setup_sockets(self):
         """Setup all ZeroMQ sockets."""
@@ -139,6 +162,61 @@ class BrokerNode:
         if self.is_cluster:
             self.poller.register(self.broker_sub, zmq.POLLIN)
     
+<<<<<<< HEAD
+    def _setup_dynamic_discovery(self):
+        """Setup dynamic service discovery."""
+        if not self._discovery_enabled:
+            return
+        
+        print(f"[BROKER-{self.broker_id}] Setting up dynamic discovery...")
+        
+        # Registry-based discovery
+        if config.SERVICE_DISCOVERY_MODE in ["registry", "hybrid"]:
+            self._registry_client = broker_discovery.get_registry_client()
+            
+            # Register this broker
+            success = self._registry_client.register_broker(self.broker_config)
+            if success:
+                print(f"[BROKER-{self.broker_id}] ✓ Registered with registry")
+                
+                # Start heartbeat thread
+                self._start_heartbeat_thread()
+            else:
+                print(f"[BROKER-{self.broker_id}] ✗ Failed to register with registry")
+        
+        # UDP broadcast discovery
+        if config.SERVICE_DISCOVERY_MODE in ["broadcast", "hybrid"] and config.ENABLE_UDP_BROADCAST:
+            self._udp_discovery = broker_discovery.get_udp_discovery()
+            
+            # Start broadcasting presence
+            self._udp_discovery.start_broadcasting(self.broker_config)
+            
+            # Start listening for other brokers
+            self._udp_discovery.start_listening()
+            
+            print(f"[BROKER-{self.broker_id}] ✓ UDP broadcast discovery started")
+    
+    def _start_heartbeat_thread(self):
+        """Start background thread for registry heartbeats."""
+        def heartbeat_worker():
+            while self._registry_client:
+                try:
+                    time.sleep(config.REGISTRY_HEARTBEAT_INTERVAL)
+                    success = self._registry_client.heartbeat(self.broker_id)
+                    if success:
+                        print(f"[BROKER-{self.broker_id}] ✓ Registry heartbeat sent")
+                    else:
+                        print(f"[BROKER-{self.broker_id}] ✗ Registry heartbeat failed")
+                except Exception as e:
+                    print(f"[BROKER-{self.broker_id}] Heartbeat error: {e}")
+                    time.sleep(5)  # Retry sooner on error
+        
+        self._heartbeat_thread = threading.Thread(target=heartbeat_worker, daemon=True)
+        self._heartbeat_thread.start()
+        print(f"[BROKER-{self.broker_id}] ✓ Heartbeat thread started")
+    
+=======
+>>>>>>> 7aa82b6a024539eabc686ecf584dd7bfe1858eb8
     def _broadcast_login_event(self, username: str, room: str):
         """
         Broadcast login event to all brokers.
@@ -190,7 +268,11 @@ class BrokerNode:
                 parts = event_str.split("|", 2)
                 if len(parts) >= 2:
                     header = parts[0]  # "MESSAGE:origin_broker:msg_id"
+<<<<<<< HEAD
+                    original_msg = parts[1]
+=======
                     original_msg = "|".join(parts[1:])
+>>>>>>> 7aa82b6a024539eabc686ecf584dd7bfe1858eb8
                     
                     header_parts = header.split(":")
                     if len(header_parts) >= 3:
@@ -201,6 +283,9 @@ class BrokerNode:
                         if origin_broker != self.broker_id and msg_id not in self.forwarded_messages:
                             # Relay the original message to local subscribers
                             self.backend.send(original_msg.encode('utf-8'))
+<<<<<<< HEAD
+                            print(f"[BROKER-{self.broker_id}] Relayed forwarded message {msg_id} from broker {origin_broker}")
+=======
                             
                             self.relay_print_count += 1
                             
@@ -212,6 +297,7 @@ class BrokerNode:
                                     f"Relayed {self.relay_print_count} messages "
                                     f"from broker {origin_broker}"
                                 )
+>>>>>>> 7aa82b6a024539eabc686ecf584dd7bfe1858eb8
                             return
             
             # Handle other events (LOGIN, LOGOUT, HEARTBEAT)
@@ -276,8 +362,12 @@ class BrokerNode:
             
             # Check if user exists globally (in cluster mode)
             if self.is_cluster and usuario in self.known_users_global:
+<<<<<<< HEAD
+                return "ERRO: Nome já está em uso (conectado em outro broker)"
+=======
                print(f"[BROKER-{self.broker_id}] Reclaiming global session for {usuario}")
                self.known_users_global.pop(usuario, None)
+>>>>>>> 7aa82b6a024539eabc686ecf584dd7bfe1858eb8
             
             # Register user locally
             self.active_users[usuario] = {
@@ -361,7 +451,10 @@ class BrokerNode:
         inter_msg = f"MESSAGE:{self.broker_id}:{msg_id}|{original_msg}"
         
         self.broker_pub.send(inter_msg.encode('utf-8'))
+<<<<<<< HEAD
+=======
         
+>>>>>>> 7aa82b6a024539eabc686ecf584dd7bfe1858eb8
         print(f"[BROKER-{self.broker_id}] Forwarded message {msg_id} to broker {target_broker_id}")
     
     def _handle_message_from_client(self, parts: list):
@@ -483,6 +576,30 @@ class BrokerNode:
     
     def _cleanup(self):
         """Close all sockets and context."""
+<<<<<<< HEAD
+        print(f"[BROKER-{self.broker_id}] Cleaning up...")
+        
+        # Stop dynamic discovery
+        if self._registry_client:
+            try:
+                self._registry_client.unregister_broker(self.broker_id)
+                print(f"[BROKER-{self.broker_id}] ✓ Unregistered from registry")
+            except Exception as e:
+                print(f"[BROKER-{self.broker_id}] Unregister error: {e}")
+        
+        if self._udp_discovery:
+            self._udp_discovery.stop()
+            print(f"[BROKER-{self.broker_id}] ✓ UDP discovery stopped")
+        
+        # Stop heartbeat thread
+        if self._heartbeat_thread and self._heartbeat_thread.is_alive():
+            # The thread will stop when _registry_client is set to None
+            self._registry_client = None
+            self._heartbeat_thread.join(timeout=2)
+        
+        # Close sockets
+=======
+>>>>>>> 7aa82b6a024539eabc686ecf584dd7bfe1858eb8
         self.frontend.close()
         self.backend.close()
         self.auth_socket.close()

@@ -33,6 +33,39 @@
 **Requisito**: Clientes não sabem previamente qual broker usar
 
 ### Requisitos Atendidos:
+<<<<<<< HEAD
+- [x] **Registro dinâmico**: `src/shared/config.py` lista brokers (fallback)
+- [x] **Cliente escolhe broker**: `broker_discovery.get_broker_for_user(username)`
+- [x] **Estratégia consistente**: Hash MD5 garante mesmo user → mesmo broker
+- [x] **Registry centralizado**: `src/broker/registry_server.py` - TCP registry service
+- [x] **Broadcast UDP**: `broker_discovery.UDPDiscovery` - local network discovery
+- [x] **Heartbeat system**: Brokers enviam heartbeats periódicos ao registry
+- [x] **Modo híbrido**: Combina registry + UDP + static fallback
+- [x] **Tolerância a falhas**: Fallback automático se discovery falhar
+
+### Implementação:
+```python
+# src/shared/broker_discovery.py - Registry Client
+class RegistryClient:
+    def register_broker(self, broker_info)
+    def heartbeat(self, broker_id)
+    def get_all_brokers()
+
+# src/shared/broker_discovery.py - UDP Discovery  
+class UDPDiscovery:
+    def start_broadcasting(self, broker_info)
+    def start_listening()
+    def get_discovered_brokers()
+
+# src/broker/broker_node.py - Integration
+def _setup_dynamic_discovery(self):
+    # Auto-register on startup
+    # Start heartbeat thread
+    # Start UDP broadcast
+```
+
+**Status**: ✅ COMPLETO - Descoberta dinâmica implementada com múltiplas estratégias
+=======
 - [x] **Registro dinâmico**: `src/shared/config.py` lista todos os brokers
 - [x] **Cliente escolhe broker**: `broker_discovery.get_broker_for_user(username)`
 - [x] **Estratégia consistente**: Hash MD5 garante mesmo user → mesmo broker
@@ -50,6 +83,7 @@ def select_fallback_broker(username, exclude_broker_id):
 ```
 
 **Status**: ✅ COMPLETO
+>>>>>>> 7aa82b6a024539eabc686ecf584dd7bfe1858eb8
 
 ---
 
@@ -204,8 +238,19 @@ Todos os requisitos foram testados e validados com sucesso:
 - ✅ 100% de taxa de autenticação
 - ✅ Sincronização inter-broker confirmada
 - ✅ Prevenção de nomes duplicados
+<<<<<<< HEAD
+- ✅ **Registry centralizado funcionando**
+- ✅ **Broadcast UDP implementado**
+- ✅ **Modo híbrido validado**
+- ✅ **Fallback automático testado**
+
+---
+
+**Conclusão**: A implementação atende completamente aos 6 requisitos especificados, incluindo **descoberta dinâmica de serviços**. Sistema pronto para produção com tolerância a falhas e escalabilidade automática.
+=======
 - ✅ Failover e reconexão funcionando
 
 ---
 
 **Conclusão**: A implementação atende completamente aos 6 requisitos especificados. Sistema pronto para produção.
+>>>>>>> 7aa82b6a024539eabc686ecf584dd7bfe1858eb8
